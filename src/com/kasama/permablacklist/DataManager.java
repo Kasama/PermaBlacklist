@@ -7,6 +7,5 @@ public class DataManager {
 	List<BlacklistEntry> entryList;
 
 	public DataManager(String directory) {
-		JdbcDataSource;
 	}
 }
