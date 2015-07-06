@@ -40,4 +40,8 @@ public class DocumentValidator {
 		);
 	}
 
+	public static String numberOnlyCPFCNPJ(String cpfcnpj){
+		return cpfcnpj.replaceAll("[^0-9]","");
+	}
+
 }
