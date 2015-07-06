@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="DataSourceManagerImpl" format="xml" hash="3643759272">
-    <data-source source="LOCAL" name="H2 - blacklist" uuid="e47366b7-425f-48bb-91b1-0b3fd159a6db">
-      <driver-ref>h2.embedded</driver-ref>
+  <component name="DataSourceManagerImpl" format="xml" hash="3859925344">
+    <data-source source="LOCAL" name="SQLite - Blacklist" uuid="fdc1a0e3-151a-4d14-9a78-a0964c442051">
+      <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
-      <jdbc-driver>org.h2.Driver</jdbc-driver>
-      <jdbc-url>jdbc:h2:file:$PROJECT_DIR$/db/blacklist</jdbc-url>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/db/database.db</jdbc-url>
       <libraries />
     </data-source>
   </component>
