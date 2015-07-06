@@ -8,14 +8,13 @@ public class Main extends Application {
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 
-		primaryStage.setScene(LoginScreen.getScene());
+		primaryStage.setScene(MainScreen.getScene());
 		primaryStage.show();
 
 	}
 
 	public static void main(String[] args) {
-//        launch(args);
-		DataManager dm = new DataManager("db/database.db");
+        launch(args);
 	}
 
 }
