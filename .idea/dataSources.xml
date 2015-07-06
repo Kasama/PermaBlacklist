@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="DataSourceManagerImpl" format="xml" hash="3859925344">
+  <component name="DataSourceManagerImpl" format="xml" hash="57915172">
     <data-source source="LOCAL" name="SQLite - Blacklist" uuid="fdc1a0e3-151a-4d14-9a78-a0964c442051">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>

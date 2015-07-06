@@ -17,11 +17,9 @@ public class DataManager {
 			c = DriverManager.getConnection("jdbc:sqlite:" + file.getAbsolutePath());
 			statement = c.createStatement();
 			String sql;
-			System.out.println("dbExists is "+ dbExists);
 			if (!dbExists) {
 				sql = "CREATE TABLE blacklist" +
 					" (" +
-					"ID INT PRIMARY KEY NOT NULL, " +
 					"NAME TEXT NOT NULL, " +
 					"CPFCNPJ TEXT NOT NULL" +
 					" )";
