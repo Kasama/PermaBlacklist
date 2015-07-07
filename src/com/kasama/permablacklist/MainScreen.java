@@ -8,28 +8,29 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 
 import java.io.IOException;
+import java.util.Optional;
 
 public class MainScreen extends Scene {
 
 	@FXML
 	private TextField filterText;
 	@FXML
-	private TableView blacklistTable;
+	private TableView<BlacklistEntry> blacklistTable;
 	@FXML
 	private TableColumn<BlacklistEntry, String> blacklistCPFCol;
 	@FXML
 	private TableColumn<BlacklistEntry, String> blacklistNameCol;
 
-	private ObservableList<BlacklistEntry> blacklisteds;
+	private DataManager dataManager;
+	private ObservableList<BlacklistEntry> blacklisted;
 
 	public MainScreen(Parent root) {
 		super(root);
 		initializeComponents();
+		dataManager = new DataManager("db/database.db");
 	}
 
 	public static Scene getScene() {
@@ -54,12 +55,12 @@ public class MainScreen extends Scene {
 
 	public void initializeComponents() {
 
-		blacklisteds = FXCollections.observableArrayList();
+		blacklisted = FXCollections.observableArrayList();
 
 		refreshTable();
 
 		FilteredList<BlacklistEntry> blacklistFilteredList;
-		blacklistFilteredList = new FilteredList<>(blacklisteds, u -> true);
+		blacklistFilteredList = new FilteredList<>(blacklisted, u -> true);
 
 		filterText.textProperty().addListener(
 			(observable, oldValue, newValue) -> {
@@ -67,10 +68,9 @@ public class MainScreen extends Scene {
 					entry -> {
 						if (newValue == null || newValue.isEmpty()) return true;
 						String lowerCaseValue = newValue.toLowerCase();
-						return
-							entry.getName().toLowerCase().contains(
-								lowerCaseValue
-							) ||
+						return entry.getName().toLowerCase().contains(
+							lowerCaseValue
+						) ||
 							entry.getCpfcnpj().toLowerCase().contains(
 								lowerCaseValue
 							) ||
@@ -86,20 +86,49 @@ public class MainScreen extends Scene {
 
 		SortedList<BlacklistEntry> sortedBlacklist;
 		sortedBlacklist = new SortedList<>(blacklistFilteredList);
-		sortedBlacklist.comparatorProperty().bind(blacklistTable.comparatorProperty());
+		sortedBlacklist.comparatorProperty().bind(
+			blacklistTable.comparatorProperty()
+		);
 
 		blacklistTable.setItems(sortedBlacklist);
 
-		tableUserID.setCellValueFactory(
-			cellData -> cellData.getValue().IDProperty()
-		);
-		tableUserName.setCellValueFactory(
+		blacklistNameCol.setCellValueFactory(
 			cellData -> cellData.getValue().nameProperty()
+		);
+		blacklistCPFCol.setCellValueFactory(
+			cellData -> cellData.getValue().cpfcnpjProperty()
 		);
 
 	}
 
+	private void addEntry() {
+
+		NewEntryDialog newEntryDialog = new NewEntryDialog();
+		Optional<BlacklistEntry> entry = newEntryDialog.showAndWait();
+
+		if (entry.isPresent()) {
+			if (entry.get().getName().equals("")) {
+				Alert alert = new Alert(
+					Alert.AlertType.ERROR, "Nome vazio!", ButtonType.OK
+				);
+				alert.setHeaderText("Impossível adicionar entrada!");
+				alert.show();
+			}else if (!DocumentValidator.isValidCNPJ(entry.get().getCpfcnpj())) {
+				Alert alert = new Alert(
+					Alert.AlertType.ERROR, "CNPJ inválido!", ButtonType.OK
+				);
+				alert.setHeaderText("Impossível adicionar entrada!");
+				alert.show();
+			}else{
+				dataManager.addEntry(entry.get());
+			}
+		}
+		refreshTable();
+
+	}
+
 	private void refreshTable() {
+		blacklisted.addAll(dataManager.requestAllEntries());
 	}
 
 }

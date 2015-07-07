@@ -1,15 +1,16 @@
 package com.kasama.permablacklist;
 
 import java.io.File;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DataManager {
 
+	private static final String TABLE = "blacklist";
+	private static final String NAME = "NAME";
+	private static final String CPFCNPJ = "CPFCNPJ";
 	Connection conn;
-	Statement statement;
 
 	public DataManager(String database) {
 		File file = new File(database);
@@ -17,16 +18,17 @@ public class DataManager {
 		try {
 			Class.forName("org.sqlite.JDBC");
 			conn = DriverManager.getConnection("jdbc:sqlite:" + file.getAbsolutePath());
-			statement = conn.createStatement();
+			Statement statement = conn.createStatement();
 			String sql;
 			if (!dbExists) {
-				sql = "CREATE TABLE blacklist" +
+				sql = "CREATE TABLE "+TABLE+
 					" (" +
-					"NAME TEXT NOT NULL, " +
-					"CPFCNPJ TEXT NOT NULL" +
+					NAME + " TEXT NOT NULL, " +
+					CPFCNPJ + " TEXT NOT NULL" +
 					" )";
 				statement.execute(sql);
 			}
+			statement.close();
 //			sql = "INSERT INTO BLACKLISTEDS (ID, NAME, CPFCNPJ)" +
 //				"VALUES (1, 'Jose', '12786421');";
 //			statement.execute(sql);
@@ -41,7 +43,6 @@ public class DataManager {
 
 	public void cleanUp(){
 		try {
-			statement.close();
 			conn.close();
 		} catch (SQLException e) {
 			System.err.println("An exception was thrown while trying to close the connection to the database");
@@ -52,5 +53,40 @@ public class DataManager {
 	public void finalize() throws Throwable {
 		cleanUp();
 		super.finalize();
+	}
+
+	public List<BlacklistEntry> requestAllEntries() {
+		List<BlacklistEntry> ret = new ArrayList<>();
+
+		try {
+			Statement statement = conn.createStatement();
+			ResultSet rs = statement.executeQuery("SELECT * FROM "+TABLE+";");
+			while (rs.next()){
+				ret.add(new BlacklistEntry(rs.getString(NAME), rs.getString(CPFCNPJ)));
+			}
+			rs.close();
+			statement.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+
+		return ret;
+	}
+
+	public boolean addEntry(BlacklistEntry entry){
+
+		try {
+			Statement statement = conn.createStatement();
+			String sql = "INSERT INTO "+TABLE+" ("+NAME+","+CPFCNPJ+")" +
+				"VALUES ('"+entry.getName()+"','"+entry.getCpfcnpj()+"');";
+			statement.execute(sql);
+			statement.close();
+			conn.commit();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return true;
 	}
 }
