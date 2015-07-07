@@ -5,15 +5,15 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
+import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 
-import java.io.IOException;
+import java.net.URL;
+import java.util.List;
 import java.util.Optional;
+import java.util.ResourceBundle;
 
-public class MainScreen extends Scene {
+public class MainScreen implements Initializable {
 
 	@FXML
 	private TextField filterText;
@@ -27,31 +27,27 @@ public class MainScreen extends Scene {
 	private DataManager dataManager;
 	private ObservableList<BlacklistEntry> blacklisted;
 
-	public MainScreen(Parent root) {
-		super(root);
-		initializeComponents();
-		dataManager = new DataManager("db/database.db");
-	}
-
-	public static Scene getScene() {
-
-		Parent root;
-		MainScreen screen = null;
-
-		FXMLLoader loader = new FXMLLoader(
-			MainScreen.class.getClassLoader().getResource("mainScreen.fxml")
-		);
-
-		try {
-			screen = new MainScreen(loader.load());
-			loader.setController(screen);
-		} catch (IOException e) {
-			throw new RuntimeException("Failed to load fxml file!");
-		}
-
-		return screen;
-
-	}
+//	public static Scene getScene() {
+//
+//		Parent root;
+//		MainScreen screen = null;
+//
+//		FXMLLoader loader = new FXMLLoader(
+//			MainScreen.class.getClassLoader().getResource("com/kasama/permablacklist/mainScreen.fxml")
+//		);
+//
+//		try {
+//			root = loader.load();
+//			screen = new MainScreen(root);
+//			loader.setController(screen);
+//			screen.initializeComponents();
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//
+//		return screen;
+//
+//	}
 
 	public void initializeComponents() {
 
@@ -101,6 +97,7 @@ public class MainScreen extends Scene {
 
 	}
 
+	@FXML
 	private void addEntry() {
 
 		NewEntryDialog newEntryDialog = new NewEntryDialog();
@@ -113,13 +110,17 @@ public class MainScreen extends Scene {
 				);
 				alert.setHeaderText("Impossível adicionar entrada!");
 				alert.show();
-			}else if (!DocumentValidator.isValidCNPJ(entry.get().getCpfcnpj())) {
+			} else if (!DocumentValidator.isValidCNPJ(
+				DocumentValidator.numberOnlyCPFCNPJ(
+					entry.get().getCpfcnpj()
+				)
+			)) {
 				Alert alert = new Alert(
 					Alert.AlertType.ERROR, "CNPJ inválido!", ButtonType.OK
 				);
 				alert.setHeaderText("Impossível adicionar entrada!");
 				alert.show();
-			}else{
+			} else {
 				dataManager.addEntry(entry.get());
 			}
 		}
@@ -127,8 +128,19 @@ public class MainScreen extends Scene {
 
 	}
 
+	@FXML
 	private void refreshTable() {
-		blacklisted.addAll(dataManager.requestAllEntries());
+		List<BlacklistEntry> refreshing = dataManager.requestAllEntries();
+		blacklisted.removeIf(all -> true);
+		if (refreshing.size() > 0)
+			blacklisted.addAll(dataManager.requestAllEntries());
 	}
 
+	@Override
+	public void initialize(
+		URL location, ResourceBundle resources
+	) {
+		dataManager = new DataManager("db/database.db");
+		initializeComponents();
+	}
 }

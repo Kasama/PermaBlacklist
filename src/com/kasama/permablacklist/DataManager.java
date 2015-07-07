@@ -14,6 +14,7 @@ public class DataManager {
 
 	public DataManager(String database) {
 		File file = new File(database);
+		System.out.println("table exists at '"+file.getAbsolutePath()+"'!");
 		boolean dbExists = file.exists();
 		try {
 			Class.forName("org.sqlite.JDBC");
@@ -27,6 +28,7 @@ public class DataManager {
 					CPFCNPJ + " TEXT NOT NULL" +
 					" )";
 				statement.execute(sql);
+				System.out.println("created table at '"+file.getAbsolutePath()+"'!");
 			}
 			statement.close();
 //			sql = "INSERT INTO BLACKLISTEDS (ID, NAME, CPFCNPJ)" +
@@ -34,10 +36,9 @@ public class DataManager {
 //			statement.execute(sql);
 		} catch (SQLException e) {
 			System.err.println("An exception was thrown while trying to open the database connection!");
+			cleanUp();
 		} catch (ClassNotFoundException e) {
 			System.err.println("Fatal error: Could not find class JDBC!");
-		} finally {
-			cleanUp();
 		}
 	}
 
@@ -82,7 +83,6 @@ public class DataManager {
 				"VALUES ('"+entry.getName()+"','"+entry.getCpfcnpj()+"');";
 			statement.execute(sql);
 			statement.close();
-			conn.commit();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

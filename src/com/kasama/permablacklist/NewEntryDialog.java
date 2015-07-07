@@ -1,6 +1,8 @@
 package com.kasama.permablacklist;
 
+import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
@@ -8,10 +10,15 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.TextField;
 
 import java.io.IOException;
+import java.net.URL;
+import java.util.ResourceBundle;
 
-public class NewEntryDialog extends Dialog<BlacklistEntry> {
+public class NewEntryDialog extends Dialog<BlacklistEntry>
+	implements Initializable {
 
+	@FXML
 	TextField name;
+	@FXML
 	TextField cpfcnpj;
 
 	public NewEntryDialog() {
@@ -39,8 +46,7 @@ public class NewEntryDialog extends Dialog<BlacklistEntry> {
 		);
 		this.setResultConverter(
 			param -> param.equals(buttonOK) ? new BlacklistEntry(
-				NewEntryDialog.this.getName(),
-				NewEntryDialog.this.getCPFCNJP()
+				NewEntryDialog.this.getName(), NewEntryDialog.this.getCPFCNJP()
 			) : null
 		);
 
@@ -52,5 +58,14 @@ public class NewEntryDialog extends Dialog<BlacklistEntry> {
 
 	public String getCPFCNJP() {
 		return cpfcnpj.getText();
+	}
+
+	@Override
+	public void initialize(
+		URL location, ResourceBundle resources
+	) {
+		TextFieldMasker.addMask(
+			NewEntryDialog.this.cpfcnpj, "  .   .   /    -  "
+		);
 	}
 }
