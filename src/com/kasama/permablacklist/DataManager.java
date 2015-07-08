@@ -23,12 +23,13 @@ public class DataManager {
 	public Connection connect(File file) {
 		boolean dbExists = file.exists();
 		Connection conn = null;
+		Statement statement = null;
 		try {
 			Class.forName("org.sqlite.JDBC");
 			conn = DriverManager.getConnection(
 				"jdbc:sqlite:" + file.getAbsolutePath()
 			);
-			Statement statement = conn.createStatement();
+			statement = conn.createStatement();
 			String sql;
 			if (!dbExists) {
 				sql = "CREATE TABLE " + TABLE +
@@ -40,22 +41,30 @@ public class DataManager {
 			}
 			statement.close();
 		} catch (SQLException e) {
-			System.err.println("An exception was thrown while trying to open the database connection!");
+			System.err.println(
+				"An exception was thrown while trying to open the database connection!"
+			);
 			close(conn);
+			conn = null;
 		} catch (ClassNotFoundException e) {
 			System.err.println("Fatal error: Could not find class JDBC!");
+		} finally {
+			close(statement);
 		}
 
 		return conn;
 	}
 
-	private void close(Connection conn){
+	private void close(AutoCloseable... closeables){
 		try {
-			if (conn != null)
-				conn.close();
-		} catch (SQLException e) {
+			int i = 0;
+			for (AutoCloseable c : closeables){
+				if (c != null)
+					c.close();
+			}
+		} catch (Exception e) {
 			System.err.println(
-				"An exception was thrown while trying to close the connection to the database"
+				"An exception was thrown while trying to close the database"
 			);
 		}
 	}
@@ -64,21 +73,20 @@ public class DataManager {
 		List<BlacklistEntry> ret = new ArrayList<>();
 
 		Connection conn = null;
+		Statement statement = null;
+		ResultSet rs = null;
 		try {
 			conn = connect(database);
-			Statement statement = conn.createStatement();
-			ResultSet rs = statement.executeQuery("SELECT * FROM "+TABLE+";");
+			statement = conn.createStatement();
+			rs = statement.executeQuery("SELECT * FROM "+TABLE+";");
 			while (rs.next()){
 				ret.add(new BlacklistEntry(rs.getString(NAME), rs.getString(CPFCNPJ)));
 			}
-			rs.close();
-			statement.close();
 		} catch (SQLException e) {
-			e.printStackTrace();
+			System.err.println("Could not query database!");
 		}finally {
-			close(conn);
+			close(rs, statement, conn);
 		}
-
 
 		return ret;
 	}
@@ -93,9 +101,8 @@ public class DataManager {
 				"VALUES ('"+entry.getName()+"','"+entry.getCpfcnpj()+"');";
 			statement.execute(sql);
 			statement.close();
-			close(conn);
 		} catch (SQLException e) {
-			e.printStackTrace();
+			System.err.println("Not possible to write to the database!");
 		} finally {
 			close(conn);
 		}
