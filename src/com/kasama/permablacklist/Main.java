@@ -18,6 +18,7 @@ public class Main extends Application {
 			)
 		);
 		root = loader.load();
+		primaryStage.setTitle("Blacklist Permanente");
 		primaryStage.setScene(new Scene(root));
 		primaryStage.show();
 

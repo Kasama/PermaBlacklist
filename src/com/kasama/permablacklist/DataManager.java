@@ -10,18 +10,28 @@ public class DataManager {
 	private static final String TABLE = "blacklist";
 	private static final String NAME = "NAME";
 	private static final String CPFCNPJ = "CPFCNPJ";
-	Connection conn;
+
+	File database = null;
 
 	public DataManager(String database) {
 		File file = new File(database);
+		this.database = file;
+		Connection conn = connect(file);
+		close(conn);
+	}
+
+	public Connection connect(File file) {
 		boolean dbExists = file.exists();
+		Connection conn = null;
 		try {
 			Class.forName("org.sqlite.JDBC");
-			conn = DriverManager.getConnection("jdbc:sqlite:" + file.getAbsolutePath());
+			conn = DriverManager.getConnection(
+				"jdbc:sqlite:" + file.getAbsolutePath()
+			);
 			Statement statement = conn.createStatement();
 			String sql;
 			if (!dbExists) {
-				sql = "CREATE TABLE "+TABLE+
+				sql = "CREATE TABLE " + TABLE +
 					" (" +
 					NAME + " TEXT NOT NULL, " +
 					CPFCNPJ + " TEXT NOT NULL" +
@@ -29,35 +39,33 @@ public class DataManager {
 				statement.execute(sql);
 			}
 			statement.close();
-//			sql = "INSERT INTO BLACKLISTEDS (ID, NAME, CPFCNPJ)" +
-//				"VALUES (1, 'Jose', '12786421');";
-//			statement.execute(sql);
 		} catch (SQLException e) {
 			System.err.println("An exception was thrown while trying to open the database connection!");
-			cleanUp();
+			close(conn);
 		} catch (ClassNotFoundException e) {
 			System.err.println("Fatal error: Could not find class JDBC!");
 		}
+
+		return conn;
 	}
 
-	public void cleanUp(){
+	private void close(Connection conn){
 		try {
-			conn.close();
+			if (conn != null)
+				conn.close();
 		} catch (SQLException e) {
-			System.err.println("An exception was thrown while trying to close the connection to the database");
+			System.err.println(
+				"An exception was thrown while trying to close the connection to the database"
+			);
 		}
-	}
-
-	@Override
-	public void finalize() throws Throwable {
-		cleanUp();
-		super.finalize();
 	}
 
 	public List<BlacklistEntry> requestAllEntries() {
 		List<BlacklistEntry> ret = new ArrayList<>();
 
+		Connection conn = null;
 		try {
+			conn = connect(database);
 			Statement statement = conn.createStatement();
 			ResultSet rs = statement.executeQuery("SELECT * FROM "+TABLE+";");
 			while (rs.next()){
@@ -67,6 +75,8 @@ public class DataManager {
 			statement.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
+		}finally {
+			close(conn);
 		}
 
 
@@ -75,14 +85,19 @@ public class DataManager {
 
 	public boolean addEntry(BlacklistEntry entry){
 
+		Connection conn = null;
 		try {
+			conn = connect(database);
 			Statement statement = conn.createStatement();
 			String sql = "INSERT INTO "+TABLE+" ("+NAME+","+CPFCNPJ+")" +
 				"VALUES ('"+entry.getName()+"','"+entry.getCpfcnpj()+"');";
 			statement.execute(sql);
 			statement.close();
+			close(conn);
 		} catch (SQLException e) {
 			e.printStackTrace();
+		} finally {
+			close(conn);
 		}
 
 		return true;

@@ -31,7 +31,7 @@
       </TextField>
       <TableView fx:id="blacklistTable" VBox.vgrow="ALWAYS">
         <columns>
-          <TableColumn fx:id="blacklistNameCol" prefWidth="406.0" text="Nome" />
+          <TableColumn fx:id="blacklistNameCol" prefWidth="390.0" text="Nome" />
           <TableColumn fx:id="blacklistCPFCol" prefWidth="191.0" text="CNPJ" />
         </columns>
          <VBox.margin>
