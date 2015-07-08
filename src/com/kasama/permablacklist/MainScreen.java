@@ -123,7 +123,7 @@ public class MainScreen implements Initializable {
 	public void initialize(
 		URL location, ResourceBundle resources
 	) {
-		dataManager = new DataManager("db/database.db");
+		dataManager = new DataManager("db/database.bin");
 		initializeComponents();
 	}
 }

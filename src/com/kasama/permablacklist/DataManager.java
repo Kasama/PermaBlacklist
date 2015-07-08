@@ -16,6 +16,9 @@ public class DataManager {
 	public DataManager(String database) {
 		File file = new File(database);
 		this.database = file;
+		if (file.getParentFile() != null){
+			file.getParentFile().mkdirs();
+		}
 		Connection conn = connect(file);
 		close(conn);
 	}
