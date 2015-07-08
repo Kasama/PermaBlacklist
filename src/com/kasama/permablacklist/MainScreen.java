@@ -101,10 +101,10 @@ public class MainScreen implements Initializable {
 	private void addEntry() {
 
 		NewEntryDialog newEntryDialog = new NewEntryDialog();
-		Optional<BlacklistEntry> entry = newEntryDialog.showAndWait();
+		Optional<BlacklistEntry> OPEntry = newEntryDialog.showAndWait();
 
-		if (entry.isPresent()) {
-			if (entry.get().getName().equals("")) {
+		if (OPEntry.isPresent()) {
+			if (OPEntry.get().getName().equals("")) {
 				Alert alert = new Alert(
 					Alert.AlertType.ERROR, "Nome vazio!", ButtonType.OK
 				);
@@ -112,7 +112,7 @@ public class MainScreen implements Initializable {
 				alert.show();
 			} else if (!DocumentValidator.isValidCNPJ(
 				DocumentValidator.numberOnlyCPFCNPJ(
-					entry.get().getCpfcnpj()
+					OPEntry.get().getCpfcnpj()
 				)
 			)) {
 				Alert alert = new Alert(
@@ -121,7 +121,9 @@ public class MainScreen implements Initializable {
 				alert.setHeaderText("Impossível adicionar entrada!");
 				alert.show();
 			} else {
-				dataManager.addEntry(entry.get());
+				BlacklistEntry entry = OPEntry.get();
+				entry.setCpfcnpj(DocumentValidator.parseToCNPJ(DocumentValidator.numberOnlyCPFCNPJ(entry.getCpfcnpj())));
+				dataManager.addEntry(entry);
 			}
 		}
 		refreshTable();

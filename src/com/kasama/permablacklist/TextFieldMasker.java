@@ -27,7 +27,7 @@ public class TextFieldMasker {
 
 		tf.setOnKeyPressed(
 			e -> {
-				int caretPosition = tf.getCaretPosition();
+				int caretPosition = tf.getCaretPosition()-1;
 				if (caretPosition < mask.length() - 1 && mask.charAt(
 					caretPosition
 				) != ' ' && e.getCode() != KeyCode.BACK_SPACE && e.getCode() != KeyCode.LEFT) {

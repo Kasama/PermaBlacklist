@@ -41,7 +41,25 @@ public class DocumentValidator {
 	}
 
 	public static String numberOnlyCPFCNPJ(String cpfcnpj){
-		return cpfcnpj.replaceAll("[^0-9]","");
+		return cpfcnpj.replaceAll("[^0-9]", "");
 	}
 
+	public static String parseToCNPJ(String s) {
+		StringBuilder sb = new StringBuilder(s);
+		int cnpjSize = 14;
+		sb.setLength(cnpjSize);
+
+		int virtualCaret = 2;
+		sb.insert(virtualCaret++, ".");
+		virtualCaret += 3;
+		sb.insert(virtualCaret++, ".");
+		virtualCaret += 3;
+		sb.insert(virtualCaret++,"/");
+		virtualCaret += 4;
+		sb.insert(virtualCaret, "-");
+		String ret = sb.toString();
+		ret = ret.replace((char)0, ' ');
+
+		return ret;
+	}
 }
