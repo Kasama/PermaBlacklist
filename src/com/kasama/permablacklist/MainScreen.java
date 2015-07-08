@@ -27,28 +27,6 @@ public class MainScreen implements Initializable {
 	private DataManager dataManager;
 	private ObservableList<BlacklistEntry> blacklisted;
 
-//	public static Scene getScene() {
-//
-//		Parent root;
-//		MainScreen screen = null;
-//
-//		FXMLLoader loader = new FXMLLoader(
-//			MainScreen.class.getClassLoader().getResource("com/kasama/permablacklist/mainScreen.fxml")
-//		);
-//
-//		try {
-//			root = loader.load();
-//			screen = new MainScreen(root);
-//			loader.setController(screen);
-//			screen.initializeComponents();
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-//
-//		return screen;
-//
-//	}
-
 	public void initializeComponents() {
 
 		blacklisted = FXCollections.observableArrayList();
