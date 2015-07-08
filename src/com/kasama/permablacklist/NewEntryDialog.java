@@ -64,8 +64,7 @@ public class NewEntryDialog extends Dialog<BlacklistEntry>
 	public void initialize(
 		URL location, ResourceBundle resources
 	) {
-		TextFieldMasker.addMask(
-			NewEntryDialog.this.cpfcnpj, "  .   .   /    -  "
-		);
+		TextFieldMasker.cnpjField(cpfcnpj);
+		name.requestFocus();
 	}
 }

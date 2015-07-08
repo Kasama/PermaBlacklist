@@ -101,7 +101,10 @@ public class MainScreen implements Initializable {
 	private void addEntry() {
 
 		NewEntryDialog newEntryDialog = new NewEntryDialog();
-		Optional<BlacklistEntry> OPEntry = newEntryDialog.showAndWait();
+		Optional<BlacklistEntry> OPEntry = Optional.empty();
+		try {
+			OPEntry = newEntryDialog.showAndWait();
+		}catch(Throwable ignored){}
 
 		if (OPEntry.isPresent()) {
 			if (OPEntry.get().getName().equals("")) {

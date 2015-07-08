@@ -1,76 +1,229 @@
 package com.kasama.permablacklist;
 
+import javafx.application.Platform;
+import javafx.geometry.Pos;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
-public class TextFieldMasker {
+import static javafx.scene.input.KeyCode.*;
+
+/**
+ * @author rafael
+ */
+public abstract class TextFieldMasker {
+
+	private static List<KeyCode> ignoreKeyCodes;
+
+	static {
+		ignoreKeyCodes = new ArrayList<>();
+		Collections.addAll(
+			ignoreKeyCodes, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12
+		);
+	}
+
+	public static void ignoreKeys(final TextField textField) {
+		textField.addEventFilter(
+			KeyEvent.KEY_PRESSED, keyEvent -> {
+				if (ignoreKeyCodes.contains(keyEvent.getCode())) {
+					keyEvent.consume();
+				}
+			}
+		);
+	}
+
 	/**
-	 * Adds a static mask to the specified text field.
+	 * Monta a mascara para Data (dd/MM/yyyy).
 	 *
-	 * @param tf   the text field.
-	 * @param mask the mask to apply.
-	 *             Example of usage: addMask(txtDate, "  /  /    ");
+	 * @param textField TextField
 	 */
-	public static void addMask(final TextField tf, final String mask) {
-		tf.setText(mask);
-		addTextLimiter(tf, mask.length());
+	public static void dateField(final TextField textField) {
+		maxField(textField, 10);
 
-		tf.textProperty().addListener(
-			(ov, oldValue, newValue) -> {
-				String value = stripMask(tf.getText(), mask);
-				tf.setText(merge(value, mask));
-			}
-		);
-
-		tf.setOnKeyPressed(
-			e -> {
-				int caretPosition = tf.getCaretPosition()-1;
-				if (caretPosition < mask.length() - 1 && mask.charAt(
-					caretPosition
-				) != ' ' && e.getCode() != KeyCode.BACK_SPACE && e.getCode() != KeyCode.LEFT) {
-					tf.positionCaret(caretPosition + 1);
+		textField.lengthProperty().addListener(
+			(observable, oldValue, newValue) -> {
+				if (newValue.intValue() < 11) {
+					textField.positionCaret(textField.getText().length()-2);
+					String value = textField.getText();
+					value = value.replaceAll("[^0-9]", "");
+					value = value.replaceFirst("(\\d{2})(\\d)", "$1/$2");
+					value = value.replaceFirst(
+						"(\\d{2})/(\\d{2})(\\d)", "$1/$2/$3"
+					);
+					textField.setText(value);
+					textField.positionCaret(textField.getText().length()-1);
 				}
 			}
 		);
 	}
 
-	static String merge(final String value, final String mask) {
-		final StringBuilder sb = new StringBuilder(mask);
-		int k = 0;
-		for (int i = 0; i < mask.length(); i++) {
-			if (mask.charAt(i) == ' ' && k < value.length()) {
-				sb.setCharAt(i, value.charAt(k));
-				k++;
-			}
-		}
-		return sb.toString();
-	}
+	/**
+	 * Monta a mascara para Data (dd/MM/yyyy).
+	 *
+	 * @param textField TextField
+	 */
+	public static void cepField(final TextField textField) {
+		maxField(textField, 9);
 
-	static String stripMask(String text, final String mask) {
-		final Set<String> maskChars = new HashSet<>();
-		for (int i = 0; i < mask.length(); i++) {
-			char c = mask.charAt(i);
-			if (c != ' ') {
-				maskChars.add(String.valueOf(c));
-			}
-		}
-		for (String c : maskChars) {
-			text = text.replace(c, "");
-		}
-		return text;
-	}
-
-	public static void addTextLimiter(final TextField tf, final int maxLength) {
-		tf.textProperty().addListener(
-			(ov, oldValue, newValue) -> {
-				if (tf.getText().length() > maxLength) {
-					String s = tf.getText().substring(0, maxLength);
-					tf.setText(s);
+		textField.lengthProperty().addListener(
+			(observable, oldValue, newValue) -> {
+				if (newValue.intValue() < 10) {
+					String value = textField.getText();
+					value = value.replaceAll("[^0-9]", "");
+					value = value.replaceFirst("(\\d{5})(\\d)", "$1-$2");
+					textField.setText(value);
+					textField.positionCaret(textField.getText().length()-1);
 				}
 			}
 		);
 	}
+
+	/**
+	 * Campo que aceita somente numericos.
+	 *
+	 * @param textField TextField
+	 */
+	public static void numericField(final TextField textField) {
+		textField.lengthProperty().addListener(
+			(observable, oldValue, newValue) -> {
+				if (newValue.intValue() > oldValue.intValue()) {
+					char ch = textField.getText().charAt(oldValue.intValue());
+					if (!(ch >= '0' && ch <= '9')) {
+						textField.setText(
+							textField.getText().substring(
+								0, textField.getText().length() - 1
+							)
+						);
+					}
+				}
+			}
+		);
+	}
+
+	/**
+	 * Monta a mascara para Moeda.
+	 *
+	 * @param textField TextField
+	 */
+	public static void monetaryField(final TextField textField) {
+		textField.setAlignment(Pos.CENTER_RIGHT);
+		textField.lengthProperty().addListener(
+			(observable, oldValue, newValue) -> {
+				String value = textField.getText();
+				value = value.replaceAll("[^0-9]", "");
+				value = value.replaceAll("([0-9])([0-9]{14})$", "$1.$2");
+				value = value.replaceAll("([0-9])([0-9]{11})$", "$1.$2");
+				value = value.replaceAll("([0-9])([0-9]{8})$", "$1.$2");
+				value = value.replaceAll("([0-9])([0-9]{5})$", "$1.$2");
+				value = value.replaceAll("([0-9])([0-9]{2})$", "$1,$2");
+				textField.setText(value);
+				textField.positionCaret(textField.getText().length()-1);
+
+				maxField(textField, 17);
+			}
+		);
+
+		textField.focusedProperty().addListener(
+			(observableValue, aBoolean, fieldChange) -> {
+				if (!fieldChange) {
+					final int length = textField.getText().length();
+					if (length > 0 && length < 3) {
+						textField.setText(textField.getText() + "00");
+					}
+				}
+			}
+		);
+	}
+
+	/**
+	 * Monta as mascara para CPF/CNPJ. A mascara eh exibida somente apos o campo perder o foco.
+	 *
+	 * @param textField TextField
+	 */
+	public static void cpfCnpjField(final TextField textField) {
+
+		textField.focusedProperty().addListener(
+			(observableValue, aBoolean, fieldChange) -> {
+				String value = textField.getText();
+				if (!fieldChange) {
+					if (textField.getText().length() == 11) {
+						value = value.replaceAll("[^0-9]", "");
+						value = value.replaceFirst(
+							"([0-9]{3})([0-9]{3})([0-9]{3})([0-9]{2})$",
+							"$1.$2.$3-$4"
+						);
+					}
+					if (textField.getText().length() == 14) {
+						value = value.replaceAll("[^0-9]", "");
+						value = value.replaceFirst(
+							"([0-9]{2})([0-9]{3})([0-9]{3})([0-9]{4})([0-9]{2})$",
+							"$1.$2.$3/$4-$5"
+						);
+					}
+				}
+				textField.setText(value);
+				if (!Objects.equals(textField.getText(), value)) {
+					textField.setText("");
+					textField.insertText(0, value);
+				}
+
+			}
+		);
+
+		maxField(textField, 18);
+	}
+
+	/**
+	 * Monta a mascara para os campos CNPJ.
+	 *
+	 * @param textField TextField
+	 */
+	public static void cnpjField(final TextField textField) {
+		maxField(textField, 18);
+
+		textField.textProperty().addListener(
+			(observableValue, number, number2) -> {
+				textField.positionCaret(textField.getText().length()-2);
+				String value = textField.getText();
+				value = value.replaceAll("[^0-9]", "");
+				value = value.replaceFirst("(\\d{2})(\\d)", "$1.$2");
+				value = value.replaceFirst(
+					"(\\d{2})\\.(\\d{3})(\\d)", "$1.$2.$3"
+				);
+				value = value.replaceFirst("\\.(\\d{3})(\\d)", ".$1/$2");
+				value = value.replaceFirst("(\\d{4})(\\d)", "$1-$2");
+				textField.setText(value);
+				textField.positionCaret(textField.getText().length()-1);
+			}
+		);
+
+	}
+
+	/**
+	 * Devido ao incremento dos caracteres das mascaras eh necessario que o cursor sempre se posicione no final da string.
+	 *
+	 * @param textField TextField
+	 */
+	private static void positionCaret(final TextField textField) {
+		Platform.runLater(
+			() -> textField.positionCaret(textField.getText().length())
+		);
+	}
+
+	private static void maxField(
+		final TextField textField, final Integer length
+	) {
+		textField.textProperty().addListener(
+			(observableValue, oldValue, newValue) -> {
+				if (newValue.length() > length) textField.setText(oldValue);
+			}
+		);
+	}
+
 }
+
